@@ -1,11 +1,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line, Legend
 } from 'recharts';
 import { 
   Users, TrendingUp, BookOpen, UserPlus, Trash2, BrainCircuit, ChevronRight, 
-  Lightbulb, ClipboardCheck, Info, FileText, Download, AlertCircle, RefreshCw, LogOut, User as UserIcon
+  Lightbulb, ClipboardCheck, Info, FileText, Download, AlertCircle, RefreshCw, LogOut, User as UserIcon,
+  Search, X, Eye, FileDown
 } from 'lucide-react';
 import { StudentRecord, ProficiencyLevel, AIAnalysis } from './types';
 import { RECOMMENDATIONS, getProficiencyLevel } from './constants';
@@ -20,10 +21,17 @@ const App: React.FC = () => {
   const [newScore, setNewScore] = useState<number>(75);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [selectedStudentName, setSelectedStudentName] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToStudents((data) => {
-      setStudents(data);
+      // Sort by date if available
+      const sorted = [...data].sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeA - timeB;
+      });
+      setStudents(sorted);
     });
     return () => unsubscribe();
   }, []);
@@ -115,6 +123,74 @@ const App: React.FC = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  const handleDownloadIndividualReport = (studentName: string) => {
+    const history = students.filter(s => s.name === studentName);
+    if (history.length === 0) return;
+
+    const latest = history[history.length - 1];
+    const rec = RECOMMENDATIONS[latest.level];
+    const dateStr = new Date().toLocaleDateString('id-ID');
+
+    let report = `LAPORAN PERKEMBANGAN LITERASI SISWA\n`;
+    report += `Nama Siswa: ${studentName}\n`;
+    report += `Tanggal Laporan: ${dateStr}\n`;
+    report += `====================================================\n\n`;
+
+    report += `STATUS TERKINI\n`;
+    report += `--------------\n`;
+    report += `Skor Terakhir: ${latest.score}\n`;
+    report += `Level Kemampuan: ${latest.level.toUpperCase()}\n\n`;
+
+    report += `GRAFIK PERKEMBANGAN NILAI\n`;
+    report += `-------------------------\n`;
+    history.forEach((h, i) => {
+      const hDate = h.createdAt?.seconds ? new Date(h.createdAt.seconds * 1000).toLocaleDateString('id-ID') : 'N/A';
+      const bar = '█'.repeat(Math.floor(h.score / 2));
+      report += `${hDate}: ${h.score.toString().padEnd(3)} ${bar}\n`;
+    });
+    report += `\n`;
+
+    report += `ANALISIS & REKOMENDASI\n`;
+    report += `----------------------\n`;
+    report += `Karakteristik: ${rec.characteristics.join(', ')}\n\n`;
+    report += `Tindak Lanjut: ${rec.followUp}\n\n`;
+    report += `Materi Bacaan Sesuai:\n`;
+    rec.readingMaterials.forEach(m => report += `- ${m}\n`);
+    report += `\n`;
+    report += `====================================================\n`;
+    report += `Dicetak oleh LiteraTrack Kelas 6 pada ${new Date().toLocaleString('id-ID')}\n`;
+
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Laporan_${studentName.replace(/\s+/g, '_')}_${dateStr.replace(/\//g, '-')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const uniqueStudents = useMemo(() => {
+    const seenNames = new Set<string>();
+    return students.filter(s => {
+      if (seenNames.has(s.name)) return false;
+      seenNames.add(s.name);
+      return true;
+    });
+  }, [students]);
+
+  const selectedStudentHistory = useMemo(() => {
+    if (!selectedStudentName) return [];
+    return students
+      .filter(s => s.name === selectedStudentName)
+      .map(s => ({
+        date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('id-ID') : '?',
+        score: s.score,
+        level: s.level
+      }));
+  }, [selectedStudentName, students]);
 
   const chartData = useMemo(() => {
     const levels = [
@@ -248,10 +324,10 @@ const App: React.FC = () => {
                   <Users size={20} className="text-indigo-600" />
                   <h2 className="text-lg font-bold text-slate-800">Daftar Siswa</h2>
                 </div>
-                <span className="text-xs bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-bold">{students.length}</span>
+                <span className="text-xs bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-bold">{uniqueStudents.length}</span>
               </div>
               <div className="max-h-[500px] overflow-y-auto">
-                {students.length === 0 ? (
+                {uniqueStudents.length === 0 ? (
                   <div className="p-12 text-center">
                     <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                       <FileText size={24} />
@@ -260,32 +336,55 @@ const App: React.FC = () => {
                   </div>
                 ) : (
                   <ul className="divide-y divide-slate-50">
-                    {students.map((student) => (
-                      <li key={student.id} className="p-4 hover:bg-slate-50 transition-colors group">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-sm font-bold text-indigo-600">Skor: {student.score}</span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                student.level === ProficiencyLevel.ADVANCED ? 'bg-emerald-100 text-emerald-700' :
-                                student.level === ProficiencyLevel.PROFICIENT ? 'bg-blue-100 text-blue-700' :
-                                student.level === ProficiencyLevel.BASIC ? 'bg-amber-100 text-amber-700' :
-                                'bg-red-100 text-red-700'
-                              }`}>
-                                {student.level}
-                              </span>
+                    {uniqueStudents.map((student) => {
+                      const history = students.filter(s => s.name === student.name);
+                      const latest = history[history.length - 1];
+                      return (
+                        <li key={student.id} className="p-4 hover:bg-indigo-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedStudentName(student.name)}>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm font-bold text-indigo-600">Skor: {latest.score}</span>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                  latest.level === ProficiencyLevel.ADVANCED ? 'bg-emerald-100 text-emerald-700' :
+                                  latest.level === ProficiencyLevel.PROFICIENT ? 'bg-blue-100 text-blue-700' :
+                                  latest.level === ProficiencyLevel.BASIC ? 'bg-amber-100 text-amber-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {latest.level}
+                                </span>
+                                {history.length > 1 && (
+                                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">
+                                    {history.length} Tes
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedStudentName(student.name);
+                                }}
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeStudent(latest.id);
+                                }}
+                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => removeStudent(student.id)}
-                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -515,6 +614,141 @@ const App: React.FC = () => {
           <UserPlus size={18} /> Tambah Siswa Baru
         </button>
       </div>
+
+      {/* Student Detail Modal */}
+      {selectedStudentName && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedStudentName(null)} />
+          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex justify-between items-center z-10">
+              <div className="flex items-center gap-4">
+                <div className="bg-indigo-600 p-2.5 rounded-2xl text-white">
+                  <UserIcon size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{selectedStudentName}</h2>
+                  <p className="text-sm text-slate-500 font-medium">Laporan Perkembangan Individu</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleDownloadIndividualReport(selectedStudentName)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                >
+                  <FileDown size={18} />
+                  Download Report (.txt)
+                </button>
+                <button 
+                  onClick={() => setSelectedStudentName(null)}
+                  className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-8">
+              {/* Progress Graph */}
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <TrendingUp size={20} className="text-indigo-600" />
+                  Grafik Perkembangan Skor
+                </h3>
+                <div className="h-[300px] w-full">
+                  {selectedStudentHistory.length > 1 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={selectedStudentHistory}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis 
+                          dataKey="date" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fontSize: 12, fontWeight: 600, fill: '#64748b'}}
+                          dy={10}
+                        />
+                        <YAxis 
+                          domain={[50, 100]}
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fontSize: 12, fill: '#94a3b8'}}
+                        />
+                        <Tooltip 
+                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                        />
+                        <Legend verticalAlign="top" height={36}/>
+                        <Line 
+                          name="Skor Literasi"
+                          type="monotone" 
+                          dataKey="score" 
+                          stroke="#4f46e5" 
+                          strokeWidth={4} 
+                          dot={{ r: 6, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
+                          activeDot={{ r: 8, strokeWidth: 0 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2 border-2 border-dashed border-slate-200 rounded-xl">
+                      <TrendingUp size={40} className="opacity-20" />
+                      <p className="font-medium text-center">Data perkembangan akan terlihat setelah<br/>siswa memiliki lebih dari satu rekaman nilai.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Latest Recommendation */}
+              {selectedStudentHistory.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Status Kemampuan Terakhir</h4>
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="text-3xl font-bold text-slate-900">{selectedStudentHistory[selectedStudentHistory.length-1].score}</span>
+                          <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase ${
+                            selectedStudentHistory[selectedStudentHistory.length-1].level === ProficiencyLevel.ADVANCED ? 'bg-emerald-100 text-emerald-700' :
+                            selectedStudentHistory[selectedStudentHistory.length-1].level === ProficiencyLevel.PROFICIENT ? 'bg-blue-100 text-blue-700' :
+                            selectedStudentHistory[selectedStudentHistory.length-1].level === ProficiencyLevel.BASIC ? 'bg-amber-100 text-amber-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedStudentHistory[selectedStudentHistory.length-1].level}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 italic">
+                          "{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].characteristics[0]} dan lainnya."
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-indigo-600">Rekomendasi Tindak Lanjut</h4>
+                      <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                        <p className="text-indigo-900 font-medium leading-relaxed">
+                          {RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].followUp}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Materi Bacaan Yang Disarankan</h4>
+                    <div className="space-y-3">
+                      {RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].readingMaterials.map((material, idx) => (
+                        <div key={idx} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 transition-all">
+                          <div className="bg-slate-100 p-2 rounded-lg text-slate-400">
+                            <BookOpen size={20} />
+                          </div>
+                          <span className="font-bold text-slate-700">{material}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

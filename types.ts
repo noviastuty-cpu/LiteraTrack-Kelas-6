@@ -11,6 +11,7 @@ export interface StudentRecord {
   name: string;
   score: number;
   level: ProficiencyLevel;
+  createdAt?: any;
 }
 
 export interface Recommendation {

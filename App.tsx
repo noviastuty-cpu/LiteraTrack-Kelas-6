@@ -48,6 +48,63 @@ const App: React.FC = () => {
     setIsAnalyzing(false);
   };
 
+  const handleDownloadReport = () => {
+    if (students.length === 0) return;
+
+    const avgScore = students.reduce((acc, s) => acc + s.score, 0) / students.length;
+    const date = new Date().toLocaleDateString('id-ID');
+
+    let report = `LAPORAN DIAGNOSTIK LITERASI - LITERA TRACK KELAS 6\n`;
+    report += `Tanggal: ${date}\n`;
+    report += `====================================================\n\n`;
+
+    report += `RINGKASAN KELAS\n`;
+    report += `---------------\n`;
+    report += `Total Siswa: ${students.length}\n`;
+    report += `Rata-rata Skor: ${avgScore.toFixed(1)}\n`;
+    report += `Skor Tertinggi: ${Math.max(...students.map(s => s.score))}\n`;
+    report += `Skor Terendah: ${Math.min(...students.map(s => s.score))}\n\n`;
+
+    report += `DAFTAR SISWA\n`;
+    report += `------------\n`;
+    students.forEach((s, i) => {
+      report += `${i + 1}. ${s.name} - Skor: ${s.score} (${s.level})\n`;
+    });
+    report += `\n`;
+
+    if (aiAnalysis) {
+      report += `ANALISIS AI\n`;
+      report += `-----------\n`;
+      report += `Ringkasan: ${aiAnalysis.summary}\n\n`;
+      report += `Strategi Utama: ${aiAnalysis.detailedStrategy}\n\n`;
+      report += `Aktivitas Disarankan:\n`;
+      aiAnalysis.suggestedActivities.forEach((act, i) => {
+        report += `- 0${i + 1}: ${act}\n`;
+      });
+      report += `\n`;
+    }
+
+    report += `MATRIKS REKOMENDASI TINDAK LANJUT\n`;
+    report += `---------------------------------\n`;
+    Object.values(RECOMMENDATIONS).forEach(rec => {
+      report += `[LEVEL: ${rec.level.toUpperCase()}] (${rec.scoreRange})\n`;
+      report += `Karakteristik: ${rec.characteristics.join(', ')}\n`;
+      report += `Tindak Lanjut: ${rec.followUp}\n`;
+      report += `Materi: ${rec.readingMaterials.join(', ')}\n`;
+      report += `---------------------------------\n`;
+    });
+
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Laporan_Literasi_Kelas6_${date.replace(/\//g, '-')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const chartData = useMemo(() => {
     const levels = [
       ProficiencyLevel.NEEDS_IMPROVEMENT,
@@ -334,11 +391,19 @@ const App: React.FC = () => {
 
             {/* Matrix Recommendations Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <ClipboardCheck size={20} className="text-indigo-600" />
                   Matriks Rekomendasi Tindak Lanjut
                 </h2>
+                <button 
+                  onClick={handleDownloadReport}
+                  disabled={students.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={16} />
+                  Download Laporan
+                </button>
               </div>
               <div className="divide-y divide-slate-100">
                 {Object.values(RECOMMENDATIONS).map((rec, idx) => (

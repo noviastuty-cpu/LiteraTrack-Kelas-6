@@ -8,7 +8,8 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && eslint firestore.rules",
+    "lint:rules": "eslint firestore.rules"
   },
   "dependencies": {
     "@google/genai": "^1.38.0",
@@ -16,6 +17,7 @@
     "@types/express": "^5.0.6",
     "esbuild": "^0.28.0",
     "express": "^5.2.1",
+    "firebase": "^12.13.0",
     "lucide-react": "^0.563.0",
     "postcss": "^8.5.14",
     "react": "^19.2.4",
@@ -25,6 +27,7 @@
     "tsx": "^4.22.2"
   },
   "devDependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",

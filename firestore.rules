@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Master Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Helpers
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(data) { return isSignedIn() && data.ownerId == request.auth.uid; }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['name', 'score', 'level', 'ownerId', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.score is int && data.score >= 60 && data.score <= 100 &&
+             data.level in ['Perlu Bimbingan', 'Cukup', 'Baik', 'Sangat Baik'] &&
+             data.ownerId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    // 3. Collection: Students
+    match /students/{studentId} {
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isOwner(existing());
+      allow create: if isVerified() && isValidId(studentId) && isValidStudent(incoming());
+      allow update: if isVerified() && isOwner(existing()) && isValidStudent(incoming()) &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'score', 'level']);
+      allow delete: if isVerified() && isOwner(existing());
+    }
+  }
+}

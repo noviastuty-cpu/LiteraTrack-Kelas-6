@@ -5,37 +5,48 @@ import {
 } from 'recharts';
 import { 
   Users, TrendingUp, BookOpen, UserPlus, Trash2, BrainCircuit, ChevronRight, 
-  Lightbulb, ClipboardCheck, Info, FileText, Download, AlertCircle, RefreshCw
+  Lightbulb, ClipboardCheck, Info, FileText, Download, AlertCircle, RefreshCw, LogOut, User as UserIcon
 } from 'lucide-react';
 import { StudentRecord, ProficiencyLevel, AIAnalysis } from './types';
 import { RECOMMENDATIONS, getProficiencyLevel } from './constants';
 import { getAIAnalysis } from './services/geminiService';
+import { useAuth } from './components/FirebaseProvider';
+import { subscribeToStudents, addStudentRecord, deleteStudentRecord } from './services/studentService';
 
 const App: React.FC = () => {
+  const { user, logout } = useAuth();
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [newName, setNewName] = useState('');
   const [newScore, setNewScore] = useState<number>(75);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
 
-  const addStudent = (e: React.FormEvent) => {
+  useEffect(() => {
+    const unsubscribe = subscribeToStudents((data) => {
+      setStudents(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const addStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
 
-    const record: StudentRecord = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newName,
-      score: newScore,
-      level: getProficiencyLevel(newScore)
-    };
-
-    setStudents([...students, record]);
-    setNewName('');
-    setNewScore(75);
+    try {
+      await addStudentRecord(newName, newScore, getProficiencyLevel(newScore));
+      setNewName('');
+      setNewScore(75);
+    } catch (error) {
+      console.error("Error adding student:", error);
+    }
   };
 
-  const removeStudent = (id: string) => {
-    setStudents(students.filter(s => s.id !== id));
+  const removeStudent = async (id: string) => {
+    try {
+      await deleteStudentRecord(id);
+    } catch (error) {
+      console.error("Error removing student:", error);
+    }
   };
 
   const handleAIAnalysis = async () => {
@@ -136,23 +147,46 @@ const App: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Kelas</span>
-              <span className="text-sm font-bold text-slate-700">{students.length} Siswa Terdaftar</span>
+          <div className="flex items-center gap-6">
+            <div className="hidden sm:flex items-center gap-3 pr-6 border-r border-slate-100">
+              <div className="text-right">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Guru Pengampu</p>
+                <p className="text-sm font-bold text-slate-700">{user?.displayName || user?.email}</p>
+              </div>
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="Avatar" className="w-10 h-10 rounded-xl border-2 border-indigo-50 shadow-sm" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                  <UserIcon size={20} />
+                </div>
+              )}
             </div>
-            <button 
-              onClick={handleAIAnalysis}
-              disabled={isAnalyzing || students.length === 0}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all shadow-md active:scale-95 ${
-                students.length === 0 
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-200'
-              }`}
-            >
-              {isAnalyzing ? <RefreshCw className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
-              {isAnalyzing ? 'Menganalisis...' : 'Analisis AI'}
-            </button>
+
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Kelas</span>
+                <span className="text-sm font-bold text-slate-700">{students.length} Siswa Terdaftar</span>
+              </div>
+              <button 
+                onClick={handleAIAnalysis}
+                disabled={isAnalyzing || students.length === 0}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all shadow-md active:scale-95 ${
+                  students.length === 0 
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-200'
+                }`}
+              >
+                {isAnalyzing ? <RefreshCw className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
+                {isAnalyzing ? 'Menganalisis...' : 'Analisis AI'}
+              </button>
+              <button 
+                onClick={logout}
+                className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                title="Keluar"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </header>

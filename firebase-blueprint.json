@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "student": {
+      "title": "Student",
+      "description": "A record of a student's literacy performance.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The student's name." },
+        "score": { "type": "integer", "description": "The student's reading comprehension score (60-100)." },
+        "level": { "type": "string", "description": "The proficiency level based on the score." },
+        "ownerId": { "type": "string", "description": "The UID of the teacher who owns this record." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Record creation timestamp." }
+      },
+      "required": ["name", "score", "level", "ownerId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "student",
+      "description": "Collection of student records."
+    }
+  }
+}

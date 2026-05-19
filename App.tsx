@@ -13,13 +13,15 @@ import { RECOMMENDATIONS, getProficiencyLevel } from './constants';
 import { getAIAnalysis } from './services/geminiService';
 import { useAuth } from './components/FirebaseProvider';
 import { subscribeToStudents, addStudentRecord, deleteStudentRecord } from './services/studentService';
+import { createStudentReportDoc } from './services/googleDocsService';
 
 const App: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, accessToken, login } = useAuth();
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [newName, setNewName] = useState('');
   const [newScore, setNewScore] = useState<number>(75);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [selectedStudentName, setSelectedStudentName] = useState<string | null>(null);
 
@@ -170,6 +172,43 @@ const App: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateGoogleDoc = async (studentName: string) => {
+    if (!accessToken) {
+      if (window.confirm('Akses Google Docs diperlukan. Klik OK untuk masuk kembali dan memberikan izin.')) {
+        login();
+      }
+      return;
+    }
+
+    const history = students.filter(s => s.name === studentName);
+    if (history.length === 0) return;
+
+    const latest = history[history.length - 1];
+    const rec = RECOMMENDATIONS[latest.level];
+    
+    const formattedHistory = history.map(h => ({
+      date: h.createdAt?.seconds ? new Date(h.createdAt.seconds * 1000).toLocaleDateString('id-ID') : 'N/A',
+      score: h.score,
+      level: h.level
+    })).slice(-3); // Take last 3 as requested
+
+    setIsGeneratingDoc(true);
+    try {
+      const docUrl = await createStudentReportDoc(
+        accessToken,
+        studentName,
+        formattedHistory,
+        rec
+      );
+      window.open(docUrl, '_blank');
+    } catch (error) {
+      console.error('Error generating Google Doc:', error);
+      alert('Gagal membuat Google Doc. Pastikan Anda telah memberikan izin yang diperlukan atau coba login kembali.');
+    } finally {
+      setIsGeneratingDoc(false);
+    }
   };
 
   const uniqueStudents = useMemo(() => {
@@ -632,11 +671,19 @@ const App: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => handleDownloadIndividualReport(selectedStudentName)}
+                  onClick={() => handleGenerateGoogleDoc(selectedStudentName!)}
+                  disabled={isGeneratingDoc}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
+                >
+                  {isGeneratingDoc ? <RefreshCw className="animate-spin" size={18} /> : <FileText size={18} />}
+                  Google Doc
+                </button>
+                <button 
+                  onClick={() => handleDownloadIndividualReport(selectedStudentName!)}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
                 >
                   <FileDown size={18} />
-                  Download Report (.txt)
+                  Text Report
                 </button>
                 <button 
                   onClick={() => setSelectedStudentName(null)}

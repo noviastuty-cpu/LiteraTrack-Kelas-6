@@ -6,6 +6,7 @@ import { LogIn, LogOut } from 'lucide-react';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  accessToken: string | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ export const useAuth = () => {
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
@@ -31,8 +33,15 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const login = async () => {
     const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/documents');
+    provider.addScope('https://www.googleapis.com/auth/drive.file');
+
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        setAccessToken(credential.accessToken);
+      }
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -41,6 +50,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const logout = async () => {
     try {
       await signOut(auth);
+      setAccessToken(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -79,7 +89,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, accessToken, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

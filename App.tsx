@@ -18,14 +18,33 @@ import { createStudentReportDoc } from './services/googleDocsService';
 const App: React.FC = () => {
   const { user, logout, accessToken, login } = useAuth();
   const [students, setStudents] = useState<StudentRecord[]>([]);
-  const [newName, setNewName] = useState('');
-  const [newClassName, setNewClassName] = useState('');
-  const [newPeriod, setNewPeriod] = useState('');
-  const [newScore, setNewScore] = useState<number>(75);
+  const [newName, setNewName] = useState(() => localStorage.getItem('litera_newName') || '');
+  const [newClassName, setNewClassName] = useState(() => localStorage.getItem('litera_newClassName') || '');
+  const [newPeriod, setNewPeriod] = useState(() => localStorage.getItem('litera_newPeriod') || '');
+  const [newScore, setNewScore] = useState<number>(() => {
+    const saved = localStorage.getItem('litera_newScore');
+    return saved ? parseInt(saved) : 75;
+  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [selectedStudentName, setSelectedStudentName] = useState<string | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('litera_newName', newName);
+  }, [newName]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_newClassName', newClassName);
+  }, [newClassName]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_newPeriod', newPeriod);
+  }, [newPeriod]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_newScore', newScore.toString());
+  }, [newScore]);
 
   useEffect(() => {
     const unsubscribe = subscribeToStudents((data) => {
@@ -38,7 +57,7 @@ const App: React.FC = () => {
       setStudents(sorted);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const addStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,8 +66,7 @@ const App: React.FC = () => {
     try {
       await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore));
       setNewName('');
-      setNewClassName('');
-      setNewPeriod('');
+      // Keep className and period for next entry
       setNewScore(75);
     } catch (error) {
       console.error("Error adding student:", error);

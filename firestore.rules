@@ -15,11 +15,16 @@ service cloud.firestore {
     function isOwner(data) { return isSignedIn() && data.ownerId == request.auth.uid; }
 
     function isValidStudent(data) {
-      return data.keys().hasAll(['name', 'className', 'period', 'score', 'level', 'ownerId', 'createdAt']) &&
-             data.keys().size() == 7 &&
+      return data.keys().hasAll(['name', 'className', 'period', 'score', 'level', 'ownerId', 'createdAt', 'readingFluency', 'readingAccuracy', 'literalComprehension', 'hotsInference', 'vocabulary']) &&
+             data.keys().size() == 12 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
              data.className is string && data.className.size() > 0 && data.className.size() <= 50 &&
              data.period is string && data.period.size() > 0 && data.period.size() <= 100 &&
+             data.readingFluency is string &&
+             data.readingAccuracy is string &&
+             data.literalComprehension is string &&
+             data.hotsInference is string &&
+             data.vocabulary is string &&
              data.score is int && data.score >= 60 && data.score <= 100 &&
              data.level in ['Perlu Bimbingan', 'Cukup', 'Baik', 'Sangat Baik'] &&
              data.ownerId == request.auth.uid &&
@@ -33,7 +38,7 @@ service cloud.firestore {
       allow update: if isVerified() && isOwner(existing()) && isValidStudent(incoming()) &&
                     incoming().createdAt == existing().createdAt &&
                     incoming().ownerId == existing().ownerId &&
-                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'className', 'period', 'score', 'level']);
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'className', 'period', 'score', 'level', 'readingFluency', 'readingAccuracy', 'literalComprehension', 'hotsInference', 'vocabulary']);
       allow delete: if isVerified() && isOwner(existing());
     }
   }

@@ -25,6 +25,12 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('litera_newScore');
     return saved ? parseInt(saved) : 75;
   });
+  const [readingFluency, setReadingFluency] = useState(() => localStorage.getItem('litera_readingFluency') || '');
+  const [readingAccuracy, setReadingAccuracy] = useState(() => localStorage.getItem('litera_readingAccuracy') || '');
+  const [literalComprehension, setLiteralComprehension] = useState(() => localStorage.getItem('litera_literalComprehension') || '');
+  const [hotsInference, setHotsInference] = useState(() => localStorage.getItem('litera_hotsInference') || '');
+  const [vocabulary, setVocabulary] = useState(() => localStorage.getItem('litera_vocabulary') || '');
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
@@ -47,6 +53,26 @@ const App: React.FC = () => {
   }, [newScore]);
 
   useEffect(() => {
+    localStorage.setItem('litera_readingFluency', readingFluency);
+  }, [readingFluency]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_readingAccuracy', readingAccuracy);
+  }, [readingAccuracy]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_literalComprehension', literalComprehension);
+  }, [literalComprehension]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_hotsInference', hotsInference);
+  }, [hotsInference]);
+
+  useEffect(() => {
+    localStorage.setItem('litera_vocabulary', vocabulary);
+  }, [vocabulary]);
+
+  useEffect(() => {
     const unsubscribe = subscribeToStudents((data) => {
       // Sort by date if available
       const sorted = [...data].sort((a, b) => {
@@ -64,8 +90,19 @@ const App: React.FC = () => {
     if (!newName.trim() || !newClassName.trim() || !newPeriod.trim()) return;
 
     try {
-      await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore));
+      await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore), {
+        readingFluency,
+        readingAccuracy,
+        literalComprehension,
+        hotsInference,
+        vocabulary
+      });
       setNewName('');
+      setReadingFluency('');
+      setReadingAccuracy('');
+      setLiteralComprehension('');
+      setHotsInference('');
+      setVocabulary('');
       // Keep className and period for next entry
       setNewScore(75);
     } catch (error) {
@@ -177,6 +214,14 @@ const App: React.FC = () => {
     });
     report += `\n`;
 
+    report += `HASIL EVALUASI MATRIKS\n`;
+    report += `----------------------\n`;
+    report += `Kelancaran Membaca    : ${latest.readingFluency || '-'}\n`;
+    report += `Akurasi Membaca       : ${latest.readingAccuracy || '-'}\n`;
+    report += `Pemahaman Literal     : ${latest.literalComprehension || '-'}\n`;
+    report += `Pemahaman HOTS        : ${latest.hotsInference || '-'}\n`;
+    report += `Kosa Kata             : ${latest.vocabulary || '-'}\n\n`;
+
     report += `ANALISIS & REKOMENDASI\n`;
     report += `----------------------\n`;
     report += `Karakteristik: ${rec.characteristics.join(', ')}\n\n`;
@@ -225,7 +270,13 @@ const App: React.FC = () => {
         studentName,
         latest.className,
         latest.period,
-        rec.matrix,
+        {
+          readingFluency: latest.readingFluency || rec.matrix.readingFluency,
+          readingAccuracy: latest.readingAccuracy || rec.matrix.readingAccuracy,
+          literalComprehension: latest.literalComprehension || rec.matrix.literalComprehension,
+          hotsInference: latest.hotsInference || rec.matrix.hotsInference,
+          vocabulary: latest.vocabulary || rec.matrix.vocabulary
+        },
         formattedHistory,
         rec
       );
@@ -254,7 +305,12 @@ const App: React.FC = () => {
       .map(s => ({
         date: s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('id-ID') : '?',
         score: s.score,
-        level: s.level
+        level: s.level,
+        readingFluency: s.readingFluency,
+        readingAccuracy: s.readingAccuracy,
+        literalComprehension: s.literalComprehension,
+        hotsInference: s.hotsInference,
+        vocabulary: s.vocabulary
       }));
   }, [selectedStudentName, students]);
 
@@ -374,6 +430,67 @@ const App: React.FC = () => {
                     placeholder="Contoh: Semester 1 2024"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-700"
                   />
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Matriks Evaluasi</h4>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kelancaran membaca</label>
+                      <input 
+                        type="text" 
+                        value={readingFluency} 
+                        onChange={(e) => setReadingFluency(e.target.value)}
+                        placeholder="Contoh: Lancar"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Akurasi membaca</label>
+                      <input 
+                        type="text" 
+                        value={readingAccuracy} 
+                        onChange={(e) => setReadingAccuracy(e.target.value)}
+                        placeholder="Contoh: 95%"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pemahaman literal</label>
+                      <input 
+                        type="text" 
+                        value={literalComprehension} 
+                        onChange={(e) => setLiteralComprehension(e.target.value)}
+                        placeholder="Contoh: Baik"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">HOTS/inferensial</label>
+                      <input 
+                        type="text" 
+                        value={hotsInference} 
+                        onChange={(e) => setHotsInference(e.target.value)}
+                        placeholder="Contoh: Perlu asah"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kosa kata</label>
+                    <input 
+                      type="text" 
+                      value={vocabulary} 
+                      onChange={(e) => setVocabulary(e.target.value)}
+                      placeholder="Contoh: Kaya/Luas"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-100">
@@ -845,27 +962,37 @@ const App: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Matriks Rekomendasi (Otomatis)</h4>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Matriks Evaluasi & Rekomendasi</h4>
                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-all">
                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Kelancaran membaca</p>
-                        <p className="text-sm font-bold text-slate-700">{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.readingFluency}</p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedStudentHistory[selectedStudentHistory.length-1].readingFluency || RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.readingFluency}
+                        </p>
                       </div>
                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-all">
                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Akurasi membaca</p>
-                        <p className="text-sm font-bold text-slate-700">{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.readingAccuracy}</p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedStudentHistory[selectedStudentHistory.length-1].readingAccuracy || RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.readingAccuracy}
+                        </p>
                       </div>
                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-all">
                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Pemahaman literal</p>
-                        <p className="text-sm font-bold text-slate-700">{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.literalComprehension}</p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedStudentHistory[selectedStudentHistory.length-1].literalComprehension || RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.literalComprehension}
+                        </p>
                       </div>
                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-all">
                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">HOTS/inferensial</p>
-                        <p className="text-sm font-bold text-slate-700">{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.hotsInference}</p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedStudentHistory[selectedStudentHistory.length-1].hotsInference || RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.hotsInference}
+                        </p>
                       </div>
                       <div className="p-4 hover:bg-slate-50 transition-all">
                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Kosa kata</p>
-                        <p className="text-sm font-bold text-slate-700">{RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.vocabulary}</p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {selectedStudentHistory[selectedStudentHistory.length-1].vocabulary || RECOMMENDATIONS[selectedStudentHistory[selectedStudentHistory.length-1].level].matrix.vocabulary}
+                        </p>
                       </div>
                     </div>
 

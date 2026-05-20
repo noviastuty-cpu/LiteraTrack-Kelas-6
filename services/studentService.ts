@@ -85,7 +85,14 @@ export const addStudentRecord = async (
   className: string, 
   period: string, 
   score: number, 
-  level: ProficiencyLevel
+  level: ProficiencyLevel,
+  matrix: {
+    readingFluency: string;
+    readingAccuracy: string;
+    literalComprehension: string;
+    hotsInference: string;
+    vocabulary: string;
+  }
 ) => {
   if (!auth.currentUser) throw new Error("User must be authenticated");
 
@@ -94,6 +101,7 @@ export const addStudentRecord = async (
       name,
       className,
       period,
+      ...matrix,
       score,
       level,
       ownerId: auth.currentUser.uid,

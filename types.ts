@@ -11,6 +11,11 @@ export interface StudentRecord {
   name: string;
   className: string;
   period: string;
+  readingFluency: string;
+  readingAccuracy: string;
+  literalComprehension: string;
+  hotsInference: string;
+  vocabulary: string;
   score: number;
   level: ProficiencyLevel;
   createdAt?: any;

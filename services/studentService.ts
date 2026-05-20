@@ -80,7 +80,21 @@ export const subscribeToStudents = (callback: (students: StudentRecord[]) => voi
   });
 };
 
-export const addStudentRecord = async (name: string, className: string, period: string, score: number, level: ProficiencyLevel) => {
+export const addStudentRecord = async (
+  name: string, 
+  className: string, 
+  period: string, 
+  score: number, 
+  level: ProficiencyLevel,
+  matrixFields: {
+    readingFluency: string;
+    readingAccuracy: string;
+    literalComprehension: string;
+    hotsInference: string;
+    vocabulary: string;
+    teacherNotes: string;
+  }
+) => {
   if (!auth.currentUser) throw new Error("User must be authenticated");
 
   try {
@@ -90,6 +104,7 @@ export const addStudentRecord = async (name: string, className: string, period: 
       period,
       score,
       level,
+      ...matrixFields,
       ownerId: auth.currentUser.uid,
       createdAt: serverTimestamp()
     });

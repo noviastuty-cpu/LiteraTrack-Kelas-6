@@ -4,6 +4,14 @@ export const createStudentReportDoc = async (
   studentName: string,
   studentClass: string,
   period: string,
+  matrixData: {
+    readingFluency: string;
+    readingAccuracy: string;
+    literalComprehension: string;
+    hotsInference: string;
+    vocabulary: string;
+    teacherNotes: string;
+  },
   history: { date: string; score: number; level: string }[],
   recommendation: { characteristics: string[]; followUp: string; readingMaterials: string[] }
 ) => {
@@ -33,33 +41,48 @@ export const createStudentReportDoc = async (
     
     // Build one big string and insert it once
     let fullText = `MATRIKS REKOMENDASI TINDAK LANJUT LITERASI\n`;
-    fullText += `LiteraTrack - Evaluasi Capaian Level Siswa\n\n`;
+    fullText += `LiteraTrack Kelas 6 - Evaluasi Capaian Siswa\n\n`;
     
     fullText += `IDENTITAS SISWA\n`;
-    fullText += `Nama Siswa      : ${studentName}\n`;
-    fullText += `Kelas           : ${studentClass}\n`;
+    fullText += `Nama Siswa       : ${studentName}\n`;
+    fullText += `Kelas            : ${studentClass}\n`;
     fullText += `Periode Penilaian: ${period}\n`;
+    fullText += `Tanggal Laporan  : ${dateStr}\n`;
     fullText += `----------------------------------------------------\n\n`;
     
-    fullText += `CAPAIAN LEVEL SAAT INI: ${latest.level.toUpperCase()}\n`;
-    fullText += `Skor Terakhir: ${latest.score}\n\n`;
+    fullText += `STATUS CAPAIAN LEVEL: ${latest.level.toUpperCase()}\n`;
+    fullText += `Skor Literasi: ${latest.score}\n\n`;
     
-    fullText += `MATRIKS REKOMENDASI TINDAK LANJUT\n`;
+    fullText += `MATRIKS EVALUASI & REKOMENDASI TINDAK LANJUT\n`;
     fullText += `====================================================\n\n`;
     
-    fullText += `1. KARAKTERISTIK KEMAMPUAN:\n`;
-    recommendation.characteristics.forEach(c => fullText += `- ${c}\n`);
-    fullText += `\n`;
+    fullText += `1. KELANCARAN MEMBACA:\n`;
+    fullText += `${matrixData.readingFluency || '-'}\n\n`;
     
-    fullText += `2. STRATEGI TINDAK LANJUT (FOLLOW-UP):\n`;
+    fullText += `2. AKURASI MEMBACA:\n`;
+    fullText += `${matrixData.readingAccuracy || '-'}\n\n`;
+    
+    fullText += `3. PEMAHAMAN LITERAL:\n`;
+    fullText += `${matrixData.literalComprehension || '-'}\n\n`;
+    
+    fullText += `4. PEMAHAMAN HOTS/INFERENSIAL:\n`;
+    fullText += `${matrixData.hotsInference || '-'}\n\n`;
+    
+    fullText += `5. KOSA KATA:\n`;
+    fullText += `${matrixData.vocabulary || '-'}\n\n`;
+    
+    fullText += `6. CATATAN OBSERVASI GURU:\n`;
+    fullText += `${matrixData.teacherNotes || '-'}\n\n`;
+    
+    fullText += `STRATEGI PEMBELAJARAN (REKOMENDASI LEVEL):\n`;
     fullText += `${recommendation.followUp}\n\n`;
     
-    fullText += `3. MATERI BACAAN YANG DISARANKAN:\n`;
+    fullText += `MATERI BACAAN YANG DISARANKAN:\n`;
     recommendation.readingMaterials.forEach(m => fullText += `- ${m}\n`);
     
     fullText += `\n====================================================\n`;
-    fullText += `Laporan ini dihasilkan secara otomatis berdasarkan data capaian literasi siswa.\n`;
-    fullText += `Dicetak pada: ${new Date().toLocaleString('id-ID')}\n`;
+    fullText += `Dihasilkan secara otomatis oleh LiteraTrack.\n`;
+    fullText += `Copyright © ${new Date().getFullYear()}\n`;
 
     const finalRequests = [
       {

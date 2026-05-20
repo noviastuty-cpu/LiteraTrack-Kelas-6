@@ -22,6 +22,13 @@ const App: React.FC = () => {
   const [newClassName, setNewClassName] = useState('');
   const [newPeriod, setNewPeriod] = useState('');
   const [newScore, setNewScore] = useState<number>(75);
+  // Matrix Evaluation States
+  const [readingFluency, setReadingFluency] = useState('');
+  const [readingAccuracy, setReadingAccuracy] = useState('');
+  const [literalComprehension, setLiteralComprehension] = useState('');
+  const [hotsInference, setHotsInference] = useState('');
+  const [vocabulary, setVocabulary] = useState('');
+  const [teacherNotes, setTeacherNotes] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
@@ -45,11 +52,24 @@ const App: React.FC = () => {
     if (!newName.trim() || !newClassName.trim() || !newPeriod.trim()) return;
 
     try {
-      await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore));
+      await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore), {
+        readingFluency,
+        readingAccuracy,
+        literalComprehension,
+        hotsInference,
+        vocabulary,
+        teacherNotes
+      });
       setNewName('');
       setNewClassName('');
       setNewPeriod('');
       setNewScore(75);
+      setReadingFluency('');
+      setReadingAccuracy('');
+      setLiteralComprehension('');
+      setHotsInference('');
+      setVocabulary('');
+      setTeacherNotes('');
     } catch (error) {
       console.error("Error adding student:", error);
     }
@@ -207,6 +227,14 @@ const App: React.FC = () => {
         studentName,
         latest.className,
         latest.period,
+        {
+          readingFluency: latest.readingFluency,
+          readingAccuracy: latest.readingAccuracy,
+          literalComprehension: latest.literalComprehension,
+          hotsInference: latest.hotsInference,
+          vocabulary: latest.vocabulary,
+          teacherNotes: latest.teacherNotes
+        },
         formattedHistory,
         rec
       );
@@ -373,6 +401,77 @@ const App: React.FC = () => {
                     <span>60</span>
                     <span>80</span>
                     <span>100</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Matriks Evaluasi</h4>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kelancaran</label>
+                      <input 
+                        type="text" 
+                        value={readingFluency} 
+                        onChange={(e) => setReadingFluency(e.target.value)}
+                        placeholder="Contoh: Lancar"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Akurasi</label>
+                      <input 
+                        type="text" 
+                        value={readingAccuracy} 
+                        onChange={(e) => setReadingAccuracy(e.target.value)}
+                        placeholder="Contoh: 95%"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Literal</label>
+                      <input 
+                        type="text" 
+                        value={literalComprehension} 
+                        onChange={(e) => setLiteralComprehension(e.target.value)}
+                        placeholder="Contoh: Baik"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">HOTS</label>
+                      <input 
+                        type="text" 
+                        value={hotsInference} 
+                        onChange={(e) => setHotsInference(e.target.value)}
+                        placeholder="Contoh: Perlu asah"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kosa Kata</label>
+                    <input 
+                      type="text" 
+                      value={vocabulary} 
+                      onChange={(e) => setVocabulary(e.target.value)}
+                      placeholder="Contoh: Kaya/Luas"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Guru</label>
+                    <textarea 
+                      value={teacherNotes} 
+                      onChange={(e) => setTeacherNotes(e.target.value)}
+                      placeholder="Observasi tambahan..."
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs h-20 resize-none"
+                    />
                   </div>
                 </div>
                 <button 

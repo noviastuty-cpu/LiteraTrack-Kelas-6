@@ -10,7 +10,6 @@ export const createStudentReportDoc = async (
     literalComprehension: string;
     hotsInference: string;
     vocabulary: string;
-    teacherNotes: string;
   },
   history: { date: string; score: number; level: string }[],
   recommendation: { characteristics: string[]; followUp: string; readingMaterials: string[] }
@@ -78,9 +77,6 @@ export const createStudentReportDoc = async (
     
     fullText += `5. KOSA KATA:\n`;
     fullText += `${matrixData.vocabulary || '-'}\n\n`;
-    
-    fullText += `6. CATATAN OBSERVASI GURU:\n`;
-    fullText += `${matrixData.teacherNotes || '-'}\n\n`;
     
     fullText += `STRATEGI PEMBELAJARAN (REKOMENDASI LEVEL):\n`;
     fullText += `${recommendation.followUp}\n\n`;

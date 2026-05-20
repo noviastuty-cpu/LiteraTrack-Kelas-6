@@ -12,7 +12,14 @@ export const RECOMMENDATIONS: Record<ProficiencyLevel, Recommendation> = {
       'Membutuhkan waktu lama untuk membaca teks pendek'
     ],
     followUp: 'Berikan bimbingan intensif 1-on-1. Gunakan teks pendek dengan bahasa sederhana dan ilustrasi visual yang kuat. Fokus pada penguasaan kosakata dasar dan penemuan informasi tersurat.',
-    readingMaterials: ['Komik edukasi', 'Cerita pendek 2 paragraf', 'Teks deskripsi benda sekitar']
+    readingMaterials: ['Komik edukasi', 'Cerita pendek 2 paragraf', 'Teks deskripsi benda sekitar'],
+    matrix: {
+      readingFluency: 'Terbata-bata, sering berhenti',
+      readingAccuracy: 'Kurang dari 80%, banyak salah kata',
+      literalComprehension: 'Sangat terbatas, hanya poin utama',
+      hotsInference: 'Belum muncul secara signifikan',
+      vocabulary: 'Sangat terbatas, hanya kata sehari-hari'
+    }
   },
   [ProficiencyLevel.BASIC]: {
     scoreRange: '70 - 79',
@@ -24,7 +31,14 @@ export const RECOMMENDATIONS: Record<ProficiencyLevel, Recommendation> = {
       'Mampu mengaitkan teks dengan pengalaman pribadi secara terbatas'
     ],
     followUp: 'Berikan latihan membaca terbimbing (Guided Reading). Gunakan teknik scaffolding seperti "Think-Aloud" untuk melatih cara menyimpulkan. Fokus pada pemahaman hubungan sebab-akibat.',
-    readingMaterials: ['Dongeng fabel', 'Artikel berita pendek anak', 'Teks narasi sejarah sederhana']
+    readingMaterials: ['Dongeng fabel', 'Artikel berita pendek anak', 'Teks narasi sejarah sederhana'],
+    matrix: {
+      readingFluency: 'Mulai lancar namun intonasi belum tepat',
+      readingAccuracy: '80% - 90%, beberapa salah baca',
+      literalComprehension: 'Cukup, mampu menjawab tanya jawab dasar',
+      hotsInference: 'Mulai teramati pada konteks sederhana',
+      vocabulary: 'Cukup, memahami kata-kata umum'
+    }
   },
   [ProficiencyLevel.PROFICIENT]: {
     scoreRange: '80 - 89',
@@ -36,7 +50,14 @@ export const RECOMMENDATIONS: Record<ProficiencyLevel, Recommendation> = {
       'Mampu menarik kesimpulan dari informasi tersirat'
     ],
     followUp: 'Perluas jangkauan bacaan ke teks non-fiksi yang lebih kompleks. Berikan tantangan untuk mengevaluasi maksud penulis. Libatkan dalam diskusi kelompok untuk bertukar perspektif.',
-    readingMaterials: ['Artikel sains populer', 'Biografi tokoh', 'Teks opini/editorial sederhana']
+    readingMaterials: ['Artikel sains populer', 'Biografi tokoh', 'Teks opini/editorial sederhana'],
+    matrix: {
+      readingFluency: 'Lancar dengan intonasi yang baik',
+      readingAccuracy: '90% - 95%, akurasi tinggi',
+      literalComprehension: 'Baik, mampu menangkap detail teks',
+      hotsInference: 'Berkembang, mampu menyimpulkan pesan tersirat',
+      vocabulary: 'Baik, menguasai berbagai istilah teknis dasar'
+    }
   },
   [ProficiencyLevel.ADVANCED]: {
     scoreRange: '90 - 100',
@@ -48,7 +69,14 @@ export const RECOMMENDATIONS: Record<ProficiencyLevel, Recommendation> = {
       'Mampu mensintesis informasi untuk membuat karya baru'
     ],
     followUp: 'Berikan program pengayaan. Tantang siswa untuk menulis kritik sastra sederhana atau melakukan riset mandiri berbasis bacaan. Jadikan mereka tutor sebaya untuk membantu teman yang masih kesulitan.',
-    readingMaterials: ['Esai sastra', 'Jurnal sains anak tingkat lanjut', 'Teks pidato klasik']
+    readingMaterials: ['Esai sastra', 'Jurnal sains anak tingkat lanjut', 'Teks pidato klasik'],
+    matrix: {
+      readingFluency: 'Sangat lancar dan ekspresif',
+      readingAccuracy: '95% - 100%, sangat akurat',
+      literalComprehension: 'Sangat baik, menguasai seluruh isi teks',
+      hotsInference: 'Mahir, kritis dalam menganalisis argumen',
+      vocabulary: 'Luas dan kaya, memahami nuansa kata'
+    }
   }
 };
 

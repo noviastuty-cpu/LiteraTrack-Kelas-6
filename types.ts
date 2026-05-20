@@ -11,12 +11,6 @@ export interface StudentRecord {
   name: string;
   className: string;
   period: string;
-  readingFluency: string;
-  readingAccuracy: string;
-  literalComprehension: string;
-  hotsInference: string;
-  vocabulary: string;
-  teacherNotes: string;
   score: number;
   level: ProficiencyLevel;
   createdAt?: any;
@@ -28,6 +22,13 @@ export interface Recommendation {
   characteristics: string[];
   followUp: string;
   readingMaterials: string[];
+  matrix: {
+    readingFluency: string;
+    readingAccuracy: string;
+    literalComprehension: string;
+    hotsInference: string;
+    vocabulary: string;
+  };
 }
 
 export interface AIAnalysis {

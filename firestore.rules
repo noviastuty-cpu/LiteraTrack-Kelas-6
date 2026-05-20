@@ -15,9 +15,10 @@ service cloud.firestore {
     function isOwner(data) { return isSignedIn() && data.ownerId == request.auth.uid; }
 
     function isValidStudent(data) {
-      return data.keys().hasAll(['name', 'score', 'level', 'ownerId', 'createdAt']) &&
-             data.keys().size() == 5 &&
+      return data.keys().hasAll(['name', 'className', 'score', 'level', 'ownerId', 'createdAt']) &&
+             data.keys().size() == 6 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.className is string && data.className.size() > 0 && data.className.size() <= 50 &&
              data.score is int && data.score >= 60 && data.score <= 100 &&
              data.level in ['Perlu Bimbingan', 'Cukup', 'Baik', 'Sangat Baik'] &&
              data.ownerId == request.auth.uid &&
@@ -32,7 +33,7 @@ service cloud.firestore {
       allow update: if isVerified() && isOwner(existing()) && isValidStudent(incoming()) &&
                     incoming().createdAt == existing().createdAt &&
                     incoming().ownerId == existing().ownerId &&
-                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'score', 'level']);
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'className', 'score', 'level']);
       allow delete: if isVerified() && isOwner(existing());
     }
   }

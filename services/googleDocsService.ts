@@ -2,6 +2,7 @@
 export const createStudentReportDoc = async (
   accessToken: string,
   studentName: string,
+  studentClass: string,
   history: { date: string; score: number; level: string }[],
   recommendation: { characteristics: string[]; followUp: string; readingMaterials: string[] }
 ) => {
@@ -14,7 +15,7 @@ export const createStudentReportDoc = async (
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        title: `Laporan Literasi - ${studentName}`
+        title: `Laporan Literasi - ${studentName} - ${studentClass}`
       })
     });
 
@@ -68,8 +69,9 @@ export const createStudentReportDoc = async (
     // But Docs API index-based updates are tricky with dynamic text.
     
     // Alternative: Just use a single insertText at index 1 for the whole content
-    let fullText = `LAPORAN PERKEMBANGAN LITERASI - LITERA TRACK KELAS 6\n`;
+    let fullText = `LAPORAN PERKEMBANGAN LITERASI - LITERA TRACK\n`;
     fullText += `Nama Siswa: ${studentName}\n`;
+    fullText += `Kelas: ${studentClass}\n`;
     fullText += `Tanggal Laporan: ${dateStr}\n`;
     fullText += `----------------------------------------------------\n\n`;
     

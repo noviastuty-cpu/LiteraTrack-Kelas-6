@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const { user, logout, accessToken, login } = useAuth();
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [newName, setNewName] = useState('');
+  const [newClassName, setNewClassName] = useState('');
   const [newScore, setNewScore] = useState<number>(75);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
@@ -40,11 +41,12 @@ const App: React.FC = () => {
 
   const addStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    if (!newName.trim() || !newClassName.trim()) return;
 
     try {
-      await addStudentRecord(newName, newScore, getProficiencyLevel(newScore));
+      await addStudentRecord(newName, newClassName, newScore, getProficiencyLevel(newScore));
       setNewName('');
+      setNewClassName('');
       setNewScore(75);
     } catch (error) {
       console.error("Error adding student:", error);
@@ -199,6 +201,7 @@ const App: React.FC = () => {
       const docUrl = await createStudentReportDoc(
         accessToken,
         studentName,
+        latest.className,
         formattedHistory,
         rec
       );
@@ -329,6 +332,16 @@ const App: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-slate-600 mb-1.5">Kelas</label>
+                  <input 
+                    type="text" 
+                    value={newClassName}
+                    onChange={(e) => setNewClassName(e.target.value)}
+                    placeholder="Contoh: Kelas 6-A"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-700"
+                  />
+                </div>
+                <div>
                   <div className="flex justify-between mb-1.5">
                     <label className="text-sm font-semibold text-slate-600">Nilai Tes (60-100)</label>
                     <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{newScore}</span>
@@ -382,7 +395,10 @@ const App: React.FC = () => {
                         <li key={student.id} className="p-4 hover:bg-indigo-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedStudentName(student.name)}>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
+                                <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">{latest.className}</span>
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-sm font-bold text-indigo-600">Skor: {latest.score}</span>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
@@ -666,7 +682,9 @@ const App: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900">{selectedStudentName}</h2>
-                  <p className="text-sm text-slate-500 font-medium">Laporan Perkembangan Individu</p>
+                  <p className="text-sm text-slate-500 font-medium">
+                    {students.find(s => s.name === selectedStudentName)?.className} • Laporan Perkembangan Individu
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

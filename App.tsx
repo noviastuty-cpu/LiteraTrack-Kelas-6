@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line, Legend
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line, Legend, AreaChart, Area
 } from 'recharts';
 import { 
   Users, TrendingUp, BookOpen, UserPlus, Trash2, BrainCircuit, ChevronRight, 
@@ -961,7 +961,63 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress Literasi</h4>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+                        <TrendingUp size={12} />
+                        Capaian Skor
+                      </div>
+                    </div>
+                    <div className="h-48 w-full bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={selectedStudentHistory}>
+                          <defs>
+                            <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                              <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis 
+                            dataKey="date" 
+                            fontSize={10} 
+                            fontWeight={700}
+                            tick={{fill: '#94a3b8'}}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis 
+                            domain={[60, 100]} 
+                            fontSize={10} 
+                            fontWeight={700}
+                            tick={{fill: '#94a3b8'}}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              borderRadius: '12px', 
+                              border: 'none', 
+                              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                              fontSize: '12px',
+                              fontWeight: 'bold'
+                            }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="score" 
+                            stroke="#6366f1" 
+                            strokeWidth={3}
+                            fillOpacity={1} 
+                            fill="url(#colorScore)" 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="mb-8">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Matriks Evaluasi & Rekomendasi</h4>
                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-all">

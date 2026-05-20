@@ -52,7 +52,7 @@ export const createStudentReportDoc = async (
     fullText += `STATUS CAPAIAN LEVEL: ${latest.level.toUpperCase()}\n`;
     fullText += `Skor Literasi Terakhir: ${latest.score}\n\n`;
     
-    fullText += `PROGRESS PERKEMBANGAN (Riwayat Tes)\n`;
+    fullText += `PROGRESS PERKEMBANGAN (Riwayat Skor Literasi)\n`;
     fullText += `----------------------------------------------------\n`;
     history.forEach((h) => {
       const bar = '█'.repeat(Math.floor(h.score / 4)); // Progress bar visualization
@@ -60,8 +60,8 @@ export const createStudentReportDoc = async (
     });
     fullText += `\n`;
     
-    fullText += `MATRIKS EVALUASI & REKOMENDASI TINDAK LANJUT\n`;
-    fullText += `====================================================\n\n`;
+    fullText += `MATRIKS EVALUASI & ANALISIS CAPAIAN\n`;
+    fullText += `----------------------------------------------------\n`;
     
     fullText += `1. KELANCARAN MEMBACA:\n`;
     fullText += `${matrixData.readingFluency || '-'}\n\n`;
@@ -78,7 +78,10 @@ export const createStudentReportDoc = async (
     fullText += `5. KOSA KATA:\n`;
     fullText += `${matrixData.vocabulary || '-'}\n\n`;
     
-    fullText += `STRATEGI PEMBELAJARAN (REKOMENDASI LEVEL):\n`;
+    fullText += `MATRIKS REKOMENDASI TINDAK LANJUT\n`;
+    fullText += `====================================================\n\n`;
+    
+    fullText += `STRATEGI PEMBELAJARAN KHUSUS:\n`;
     fullText += `${recommendation.followUp}\n\n`;
     
     fullText += `MATERI BACAAN YANG DISARANKAN:\n`;

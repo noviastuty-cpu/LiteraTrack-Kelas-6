@@ -218,7 +218,7 @@ const App: React.FC = () => {
       date: h.createdAt?.seconds ? new Date(h.createdAt.seconds * 1000).toLocaleDateString('id-ID') : 'N/A',
       score: h.score,
       level: h.level
-    })).slice(-3); // Take last 3 as requested
+    })); // Take all history for true progress visualization
 
     setIsGeneratingDoc(true);
     try {
@@ -384,32 +384,13 @@ const App: React.FC = () => {
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-700"
                   />
                 </div>
-                <div>
-                  <div className="flex justify-between mb-1.5">
-                    <label className="text-sm font-semibold text-slate-600">Nilai Tes (60-100)</label>
-                    <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{newScore}</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min="60" 
-                    max="100" 
-                    value={newScore}
-                    onChange={(e) => setNewScore(parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1 uppercase font-bold px-1">
-                    <span>60</span>
-                    <span>80</span>
-                    <span>100</span>
-                  </div>
-                </div>
 
                 <div className="pt-4 border-t border-slate-100 space-y-4">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Matriks Evaluasi</h4>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kelancaran</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kelancaran membaca</label>
                       <input 
                         type="text" 
                         value={readingFluency} 
@@ -419,7 +400,7 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Akurasi</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Akurasi membaca</label>
                       <input 
                         type="text" 
                         value={readingAccuracy} 
@@ -432,7 +413,7 @@ const App: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Literal</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pemahaman literal</label>
                       <input 
                         type="text" 
                         value={literalComprehension} 
@@ -442,7 +423,7 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">HOTS</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">HOTS/inferensial</label>
                       <input 
                         type="text" 
                         value={hotsInference} 
@@ -454,7 +435,7 @@ const App: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kosa Kata</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kosa kata</label>
                     <input 
                       type="text" 
                       value={vocabulary} 
@@ -472,6 +453,26 @@ const App: React.FC = () => {
                       placeholder="Observasi tambahan..."
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs h-20 resize-none"
                     />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex justify-between mb-1.5">
+                    <label className="text-sm font-semibold text-slate-600">Nilai Tes (60-100)</label>
+                    <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{newScore}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="60" 
+                    max="100" 
+                    value={newScore}
+                    onChange={(e) => setNewScore(parseInt(e.target.value))}
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-1 uppercase font-bold px-1">
+                    <span>60</span>
+                    <span>80</span>
+                    <span>100</span>
                   </div>
                 </div>
                 <button 
@@ -537,9 +538,20 @@ const App: React.FC = () => {
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  handleDownloadIndividualReport(student.name);
+                                }}
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                                title="Download Laporan Individu"
+                              >
+                                <FileDown size={16} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setSelectedStudentName(student.name);
                                 }}
                                 className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                                title="Lihat Detail"
                               >
                                 <Eye size={16} />
                               </button>
@@ -707,7 +719,7 @@ const App: React.FC = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download size={16} />
-                  Download Laporan
+                  Download Ringkasan Kelas
                 </button>
               </div>
               <div className="divide-y divide-slate-100">

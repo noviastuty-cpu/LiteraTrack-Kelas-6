@@ -51,7 +51,15 @@ export const createStudentReportDoc = async (
     fullText += `----------------------------------------------------\n\n`;
     
     fullText += `STATUS CAPAIAN LEVEL: ${latest.level.toUpperCase()}\n`;
-    fullText += `Skor Literasi: ${latest.score}\n\n`;
+    fullText += `Skor Literasi Terakhir: ${latest.score}\n\n`;
+    
+    fullText += `PROGRESS PERKEMBANGAN (Riwayat Tes)\n`;
+    fullText += `----------------------------------------------------\n`;
+    history.forEach((h) => {
+      const bar = '█'.repeat(Math.floor(h.score / 4)); // Progress bar visualization
+      fullText += `${h.date.padEnd(12)} | Skor: ${h.score.toString().padEnd(3)} | ${bar}\n`;
+    });
+    fullText += `\n`;
     
     fullText += `MATRIKS EVALUASI & REKOMENDASI TINDAK LANJUT\n`;
     fullText += `====================================================\n\n`;

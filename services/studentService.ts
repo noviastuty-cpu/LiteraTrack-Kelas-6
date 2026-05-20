@@ -80,13 +80,14 @@ export const subscribeToStudents = (callback: (students: StudentRecord[]) => voi
   });
 };
 
-export const addStudentRecord = async (name: string, className: string, score: number, level: ProficiencyLevel) => {
+export const addStudentRecord = async (name: string, className: string, period: string, score: number, level: ProficiencyLevel) => {
   if (!auth.currentUser) throw new Error("User must be authenticated");
 
   try {
     await addDoc(collection(db, 'students'), {
       name,
       className,
+      period,
       score,
       level,
       ownerId: auth.currentUser.uid,

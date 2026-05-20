@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [newName, setNewName] = useState('');
   const [newClassName, setNewClassName] = useState('');
+  const [newPeriod, setNewPeriod] = useState('');
   const [newScore, setNewScore] = useState<number>(75);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
@@ -41,12 +42,13 @@ const App: React.FC = () => {
 
   const addStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName.trim() || !newClassName.trim()) return;
+    if (!newName.trim() || !newClassName.trim() || !newPeriod.trim()) return;
 
     try {
-      await addStudentRecord(newName, newClassName, newScore, getProficiencyLevel(newScore));
+      await addStudentRecord(newName, newClassName, newPeriod, newScore, getProficiencyLevel(newScore));
       setNewName('');
       setNewClassName('');
+      setNewPeriod('');
       setNewScore(75);
     } catch (error) {
       console.error("Error adding student:", error);
@@ -138,6 +140,8 @@ const App: React.FC = () => {
 
     let report = `LAPORAN PERKEMBANGAN LITERASI SISWA\n`;
     report += `Nama Siswa: ${studentName}\n`;
+    report += `Kelas: ${latest.className}\n`;
+    report += `Periode: ${latest.period}\n`;
     report += `Tanggal Laporan: ${dateStr}\n`;
     report += `====================================================\n\n`;
 
@@ -202,6 +206,7 @@ const App: React.FC = () => {
         accessToken,
         studentName,
         latest.className,
+        latest.period,
         formattedHistory,
         rec
       );
@@ -342,6 +347,16 @@ const App: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-slate-600 mb-1.5">Periode Penilaian</label>
+                  <input 
+                    type="text" 
+                    value={newPeriod}
+                    onChange={(e) => setNewPeriod(e.target.value)}
+                    placeholder="Contoh: Semester 1 2024"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-700"
+                  />
+                </div>
+                <div>
                   <div className="flex justify-between mb-1.5">
                     <label className="text-sm font-semibold text-slate-600">Nilai Tes (60-100)</label>
                     <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{newScore}</span>
@@ -397,7 +412,10 @@ const App: React.FC = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
-                                <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">{latest.className}</span>
+                                <div className="flex gap-1">
+                                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">{latest.className}</span>
+                                  <span className="text-[10px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-bold">{latest.period}</span>
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-sm font-bold text-indigo-600">Skor: {latest.score}</span>
@@ -683,7 +701,7 @@ const App: React.FC = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900">{selectedStudentName}</h2>
                   <p className="text-sm text-slate-500 font-medium">
-                    {students.find(s => s.name === selectedStudentName)?.className} • Laporan Perkembangan Individu
+                    {students.find(s => s.name === selectedStudentName)?.className} • {students.find(s => s.name === selectedStudentName)?.period} • Laporan Perkembangan Individu
                   </p>
                 </div>
               </div>

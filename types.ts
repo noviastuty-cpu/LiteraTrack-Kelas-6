@@ -10,6 +10,7 @@ export interface StudentRecord {
   id: string;
   name: string;
   className: string;
+  period: string;
   score: number;
   level: ProficiencyLevel;
   createdAt?: any;

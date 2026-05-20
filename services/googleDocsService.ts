@@ -3,6 +3,7 @@ export const createStudentReportDoc = async (
   accessToken: string,
   studentName: string,
   studentClass: string,
+  period: string,
   history: { date: string; score: number; level: string }[],
   recommendation: { characteristics: string[]; followUp: string; readingMaterials: string[] }
 ) => {
@@ -15,7 +16,7 @@ export const createStudentReportDoc = async (
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        title: `Laporan Literasi - ${studentName} - ${studentClass}`
+        title: `Laporan Literasi - ${studentName} - ${studentClass} - ${period}`
       })
     });
 
@@ -26,55 +27,18 @@ export const createStudentReportDoc = async (
 
     const { documentId } = await createRes.json();
 
-    // 2. Build the content requests
+    // 2. Build the content
     const latest = history[history.length - 1];
     const dateStr = new Date().toLocaleDateString('id-ID');
     
-    const requests = [
-      {
-        insertText: {
-          location: { index: 1 },
-          text: `LAPORAN PERKEMBANGAN LITERASI - LITERA TRACK KELAS 6\n\n`
-        }
-      },
-      {
-        updateParagraphStyle: {
-          range: { startIndex: 1, endIndex: 53 },
-          paragraphStyle: { namedStyleType: 'HEADING_1', alignment: 'CENTER' },
-          fields: 'namedStyleType,alignment'
-        }
-      },
-      {
-        insertText: {
-          location: { index: 53 },
-          text: `Nama Siswa: ${studentName}\nTanggal Laporan: ${dateStr}\n\n`
-        }
-      },
-      {
-        insertText: {
-          location: { index: 53 + studentName.length + dateStr.length + 32 },
-          text: `STATUS TERKINI\nSkor Terakhir: ${latest.score}\nLevel Kemampuan: ${latest.level.toUpperCase()}\n\n`
-        }
-      },
-      {
-        insertText: {
-          location: { index: 53 + studentName.length + dateStr.length + 32 + 50 }, // Approximation, we should ideally track index accurately
-          text: `RIWAYAT PERKEMBANGAN (3 Tes Terakhir)\n`
-        }
-      }
-    ];
-
-    // To be more precise, we should append text at the end
-    // Let's use a simpler approach: build one big string and insert it once, then apply formatting if needed
-    // But Docs API index-based updates are tricky with dynamic text.
-    
-    // Alternative: Just use a single insertText at index 1 for the whole content
+    // Build one big string and insert it once
     let fullText = `MATRIKS REKOMENDASI TINDAK LANJUT LITERASI\n`;
     fullText += `LiteraTrack - Evaluasi Capaian Level Siswa\n\n`;
     
     fullText += `IDENTITAS SISWA\n`;
-    fullText += `Nama Siswa : ${studentName}\n`;
-    fullText += `Kelas      : ${studentClass}\n`;
+    fullText += `Nama Siswa      : ${studentName}\n`;
+    fullText += `Kelas           : ${studentClass}\n`;
+    fullText += `Periode Penilaian: ${period}\n`;
     fullText += `----------------------------------------------------\n\n`;
     
     fullText += `CAPAIAN LEVEL SAAT INI: ${latest.level.toUpperCase()}\n`;

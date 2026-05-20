@@ -69,36 +69,33 @@ export const createStudentReportDoc = async (
     // But Docs API index-based updates are tricky with dynamic text.
     
     // Alternative: Just use a single insertText at index 1 for the whole content
-    let fullText = `LAPORAN PERKEMBANGAN LITERASI - LITERA TRACK\n`;
-    fullText += `Nama Siswa: ${studentName}\n`;
-    fullText += `Kelas: ${studentClass}\n`;
-    fullText += `Tanggal Laporan: ${dateStr}\n`;
+    let fullText = `MATRIKS REKOMENDASI TINDAK LANJUT LITERASI\n`;
+    fullText += `LiteraTrack - Evaluasi Capaian Level Siswa\n\n`;
+    
+    fullText += `IDENTITAS SISWA\n`;
+    fullText += `Nama Siswa : ${studentName}\n`;
+    fullText += `Kelas      : ${studentClass}\n`;
     fullText += `----------------------------------------------------\n\n`;
     
-    fullText += `STATUS TERKINI\n`;
-    fullText += `Skor Terakhir: ${latest.score}\n`;
-    fullText += `Level Kemampuan: ${latest.level.toUpperCase()}\n\n`;
+    fullText += `CAPAIAN LEVEL SAAT INI: ${latest.level.toUpperCase()}\n`;
+    fullText += `Skor Terakhir: ${latest.score}\n\n`;
     
-    fullText += `RIWAYAT PERKEMBANGAN\n`;
-    history.forEach((h, i) => {
-      const bar = '█'.repeat(Math.floor(h.score / 2));
-      fullText += `${h.date}: ${h.score} ${bar}\n`;
-    });
-    fullText += `\n`;
+    fullText += `MATRIKS REKOMENDASI TINDAK LANJUT\n`;
+    fullText += `====================================================\n\n`;
     
-    fullText += `ANALISIS & REKOMENDASI TINDAK LANJUT\n`;
-    fullText += `Karakteristik Siswa:\n`;
+    fullText += `1. KARAKTERISTIK KEMAMPUAN:\n`;
     recommendation.characteristics.forEach(c => fullText += `- ${c}\n`);
     fullText += `\n`;
     
-    fullText += `Rekomendasi Tindak Lanjut:\n`;
+    fullText += `2. STRATEGI TINDAK LANJUT (FOLLOW-UP):\n`;
     fullText += `${recommendation.followUp}\n\n`;
     
-    fullText += `Materi Bacaan Yang Disarankan:\n`;
+    fullText += `3. MATERI BACAAN YANG DISARANKAN:\n`;
     recommendation.readingMaterials.forEach(m => fullText += `- ${m}\n`);
     
-    fullText += `\n----------------------------------------------------\n`;
-    fullText += `Dihasilkan oleh LiteraTrack Kelas 6 pada ${new Date().toLocaleString('id-ID')}\n`;
+    fullText += `\n====================================================\n`;
+    fullText += `Laporan ini dihasilkan secara otomatis berdasarkan data capaian literasi siswa.\n`;
+    fullText += `Dicetak pada: ${new Date().toLocaleString('id-ID')}\n`;
 
     const finalRequests = [
       {
